@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
-from model.py import HAN
+from model import HAN
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def train(input,target,han,han_optmz,criterion):
