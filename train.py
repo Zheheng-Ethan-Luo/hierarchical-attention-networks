@@ -14,6 +14,7 @@ def train(input,target,han,han_optmz,criterion):
 	loss = 0
 	
 	output = han(claim,sentences)
+	output = torch.log(output)
 	loss += criterion(output,target)
 	
 	loss.backward()
