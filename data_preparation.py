@@ -18,13 +18,10 @@ def load_wordem(wvFile):
     glove[word] = embedding
     weights.append(embedding)
   embedding_dim = embedding.shape[0]
-  weights.append(np.random.normal(scale=0.6,size=(embedding_dim,)))
+  weights.append(np.random.normal(scale=0.6,size=(embedding_dim,)))#for unknown token
   weights = np.asarray(weights)
   print("word embedding initialization finished")
   return glove,weights,word2index,embedding_dim
-
-gloveFile = '/content/drive/My Drive/glove.6B.50d.txt'
-glove,weights,word2index,embedding_dim = load_wordem(gloveFile)
 
 def wordtoindex(wl,word2index):
   wl_new = []
@@ -41,6 +38,9 @@ def index2tensor(sent,weights):
     matrix[i] = torch.from_numpy(weight[sent[i]])
   return matrix
   
+gloveFile = '/content/drive/My Drive/glove.6B.50d.txt'
+glove,weights,word2index,embedding_dim = load_wordem(gloveFile)
+
 tokenizer = nltk.tokenize.WordPunctTokenizer()
 claim_ori = "The test of a 5G cellular network is the cause of unexplained bird deaths occurring in a park in The Hague, Netherlands."
 sentences = [
