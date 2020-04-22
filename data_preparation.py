@@ -79,3 +79,12 @@ def build_instance(claim,sentence,target):
 
 instances = []
 instances = [build_instance(claims[i],sentences[i],targets[i]) for i in range(len(claims))]
+#constructing train set and test set
+instances_T = [instance for instance in instances if instance[2]==1]
+instances_F = [instance for instance in instances if instance[2]==0]
+
+divide_t = int(len(instances_T)/10)
+divide_f = int(len(instances_F)/10)
+
+instances_train = instances_T[divide_t:]+instances_F[divide_f:]
+instances_test = instances_T[:divide_t]+instances_F[:divide_f]
