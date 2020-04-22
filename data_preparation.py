@@ -5,6 +5,9 @@ from torch import optim
 import torch.nn.functional as F
 import nltk
 import pandas as pd
+from model import HAN
+from train import train_batch
+
 
 def load_wordem(wvFile):
   glove = {}
@@ -88,3 +91,8 @@ divide_f = int(len(instances_F)/10)
 
 instances_train = instances_T[divide_t:]+instances_F[divide_f:]
 instances_test = instances_T[:divide_t]+instances_F[:divide_f]
+
+hidden_size = 100
+embedding_size = 50
+han = HAN(embedding_size,hidden_size,1).to(device)
+train_batch(han,instances,n_epoches=100)
