@@ -69,13 +69,12 @@ def build_instance(claim,sentence,target):
   sent_indice_l = [wordtoindex(s,word2index) for s in sentence_wls]
   claim_input = index2tensor(claim_indice,weights)
   sentence_input = [index2tensor(s,weights) for s in sent_indice_l]
-  model_input.append(claim_input)
-  model_input.append(sentence_input)
-  instance.append(model_input)
+  instance.append(claim_input)
+  instance.append(sentence_input)
   if target in ['true', 'mostly true']:
-    instance.append(torch.tensor([1]))
+    instance.append(torch.tensor([1.]).to(device))
   else:
-    instance.append(torch.tensor([0]))
+    instance.append(torch.tensor([0.]).to(device))
   return instance
 
 instances = []
