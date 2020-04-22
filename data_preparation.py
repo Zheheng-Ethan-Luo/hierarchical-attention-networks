@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 import nltk
+import pandas as pd
 
 def load_wordem(wvFile):
   glove = {}
@@ -41,29 +42,41 @@ def index2tensor(sent,weights):
 gloveFile = '/content/drive/My Drive/glove.6B.50d.txt'
 glove,weights,word2index,embedding_dim = load_wordem(gloveFile)
 
-tokenizer = nltk.tokenize.WordPunctTokenizer()
-claim_ori = "The test of a 5G cellular network is the cause of unexplained bird deaths occurring in a park in The Hague, Netherlands."
-sentences = [
-"Lots of tests going on with it in the Netherlands, but there haven’t been test done in The Haque during the time that the mysterious starling deaths occurred.", 
-"One such test did occur in an area generally near Huijgenspark, but it took place on 28 June 2018.", 
-"It’s not clear whether tests with 5G have been carried out again, but so far everything points in the direction of 5G as the most probable cause.", 
-"Between Friday, 19 Oct and Saturday, 3 Nov 2018, 337 dead starlings and 2 dead common wood pigeons were found.", 
-"The radiation created on the attempt of 5G cellular networks are not harmful only for birds but also for humans too.", 
-"5G network developers promise faster data rates in addition to reduce energy and financial cost.", 
-"Parts of the park are blocked and dogs are no longer allowed to be let out, the dead birds are always cleaned up as quickly as possible."]
-claim_wl = tokenizer.tokenize(claim_ori.lower())
-claim_indice = wordtoindex(claim_wl,word2index)
-sentence_wls = [tokenizer.tokenize(s.lower()) for s in sentences]
-sent_indice_l = [wordtoindex(s,word2index) for s in sentence_wls]
-claim_input = index2tensor(claim_indice,weights)
-sentence_input = [index2tensor(s,weights) for s in sent_indice_l]
-target = torch.tensor([0])
+r_snopes = '/content/drive/My Drive/snopes.tsv'
+snopes = pd.read_csv(r_snopes,sep='\t')
 
-model_input = []
-instance =[]
+claim_ids = snopes['<claim_id>']
+claim_ids = claim_ids.drop_duplicates()
+claim_ids = claim_ids.to_list()
+
+claims = []
+sentences = []
+targets = []
+for id in claim_ids:
+  claim = snopes.loc[snopes['<claim_id>']==id]['<claim_text>'].drop_duplicates().to_list()[0]
+  evidence = snopes.loc[snopes['<claim_id>']==id]['<evidence>'].to_list()
+  label  = snopes.loc[snopes['<claim_id>']==id]['<cred_label>'].drop_duplicates().to_list()[0]
+  claims.append(claim)
+  sentences.append(evidence)
+  targets.append(label)
+ 
+def build_instance(claim,sentence,target):
+  instance = []
+  model_input = []
+  claim_wl = tokenizer.tokenize(claim.lower())
+  claim_indice = wordtoindex(claim_wl,word2index)
+  sentence_wls = [tokenizer.tokenize(s.lower()) for s in sentence]
+  sent_indice_l = [wordtoindex(s,word2index) for s in sentence_wls]
+  claim_input = index2tensor(claim_indice,weights)
+  sentence_input = [index2tensor(s,weights) for s in sent_indice_l]
+  model_input.append(claim_input)
+  model_input.append(sentence_input)
+  instance.append(model_input)
+  if target in ['true', 'mostly true']:
+    instance.append(torch.tensor([1]))
+  else:
+    instance.append(torch.tensor([0]))
+  return instance
+
 instances = []
-model_input.append(claim_input)
-model_input.append(sentence_input)
-instance.append(model_input)
-instance.append(target)
-instances.append(instance)
+instances = [build_instance(claims[i],sentences[i],targets[i]) for i in range(len(claims))]
