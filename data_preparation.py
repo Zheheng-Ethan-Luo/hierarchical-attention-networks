@@ -57,3 +57,13 @@ sentence_wls = [tokenizer.tokenize(s.lower()) for s in sentences]
 sent_indice_l = [wordtoindex(s,word2index) for s in sentence_wls]
 claim_input = index2tensor(claim_indice,weights)
 sentence_input = [index2tensor(s,weights) for s in sent_indice_l]
+target = torch.tensor([0])
+
+model_input = []
+instance =[]
+instances = []
+model_input.append(claim_input)
+model_input.append(sentence_input)
+instance.append(model_input)
+instance.append(target)
+instances.append(instance)
