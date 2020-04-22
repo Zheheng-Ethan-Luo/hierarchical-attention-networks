@@ -28,7 +28,7 @@ def trainIters(han, instances, n_epoches, print_every=100, learning_rate=0.005):
 	print_loss_total = 0
 	
 	han_optmz = optim.Adagrad(han.parameters(), lr=learning_rate)
-	criterion = nn.NLLLoss()
+	criterion = nn.BCELoss()
 	for epoch in range(n_epoches):
 		for i in range(len(instances)):
 			input = instances[i][0]
@@ -41,7 +41,7 @@ def trainIters(han, instances, n_epoches, print_every=100, learning_rate=0.005):
 			print_loss_avg = print_loss_total/print_every
 			print_loss_total = 0
 			now = time.time()
-			print('%s (%d %d%%) %.4f' % (now-start,i,i/len(instances)*n_epoches,print_loss_avg)
+			print('%s (%d %d%%) %.4f' % (int(now-start),i,i/(len(instances)*n_epoches),print_loss_avg)
 
 hidden_size = 100
 embedding_size = 50
