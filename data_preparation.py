@@ -35,7 +35,7 @@ def wordtoindex(wl,word2index):
 def index2tensor(sent,weights):
   matrix = torch.zeros((len(sent),embedding_dim))
   for i in range(len(sent)):
-    matrix[i] = torch.from_numpy(weight[sent[i]])
+    matrix[i] = torch.from_numpy(weights[sent[i]])
   return matrix
   
 gloveFile = '/content/drive/My Drive/glove.6B.50d.txt'
