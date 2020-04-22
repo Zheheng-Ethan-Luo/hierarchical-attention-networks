@@ -44,5 +44,6 @@ def trainIters(han, instances, n_epoches, print_every=100, learning_rate=0.005):
 			print('%s (%d %d%%) %.4f' % (now-start,i,i/len(instances)*n_epoches,print_loss_avg)
 
 hidden_size = 100
-han = HAN(300,100,1).to_device(device)
+embedding_size = 50
+han = HAN(50,100,1).to_device(device)
 trainIters(han,instances,20)
