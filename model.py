@@ -16,8 +16,8 @@ class HAN(nn.Module):
     self.sent_grm = nn.GRU(self.embedding_size, self.hidden_size)
     self.gate_s = nn.Linear(self.hidden_size,1,bias=False)
     self.gate_c = nn.Linear(self.hidden_size,1,bias=False)
-    self.atten_c = nn.Linear(self.hidden_size,self.hidden_size)
-    self.atten_s = nn.Linear(self.hidden_size,1)
+    self.atten_c = nn.Linear(self.hidden_size,self.hidden_size,bias=False)
+    self.atten_s = nn.Linear(self.hidden_size,1,bias=False)
     self.coherence_atten = nn.Softmax(dim=1)
     self.extension = nn.Linear(self.hidden_size*2,self.hidden_size)
     self.joint = nn.Linear(self.hidden_size*4,self.hidden_size,bias=False)
@@ -26,6 +26,7 @@ class HAN(nn.Module):
     self.final = nn.Linear(self.hidden_size,self.output_size)
 		
   def forward(self,claim,sentences):
+   #gru
     _, hc = self.claim_gru(torch.unsqueeze(claim,1))
     hc = torch.squeeze(hc,1)
     HS = torch.zeros(len(sentences),self.hidden_size).to(device)
@@ -33,6 +34,7 @@ class HAN(nn.Module):
       _,hs = self.sent_grm(torch.unsqueeze(sentences[i],1))
       hs = torch.squeeze(hs,1)
       HS[i] = hs
+    #conherence attention
     gate_s = self.gate_s(HS)
     gate_c = self.gate_c(hc)
     g_c_S = torch.sigmoid(gate_s+gate_c)
@@ -46,7 +48,7 @@ class HAN(nn.Module):
       H_c_s[i] = torch.tanh(self.joint(tmp))
     atten_entail = torch.tanh(self.atten_entail(H_c_s))
     entai_atten = self.entai_atten(atten_entail)
-    h_c_S = torch.matmul(entai_atten.t(),H_c_s)
+    h_c_S = torch.matmul(entai_atten.t(),HS)
     output = self.final(h_c_S)
     output = torch.sigmoid(output)
     return output
