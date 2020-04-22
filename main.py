@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import nltk
 import pandas as pd
 from model import HAN
-from train import train_batch
+from train import train_batch,evaluate
 
 
 def load_wordem(wvFile):
@@ -41,28 +41,7 @@ def index2tensor(sent,weights):
   for i in range(len(sent)):
     matrix[i] = torch.from_numpy(weights[sent[i]])
   return matrix
-  
-gloveFile = '/content/drive/My Drive/glove.6B.50d.txt'
-glove,weights,word2index,embedding_dim = load_wordem(gloveFile)
 
-r_snopes = '/content/drive/My Drive/snopes.tsv'
-snopes = pd.read_csv(r_snopes,sep='\t')
-
-claim_ids = snopes['<claim_id>']
-claim_ids = claim_ids.drop_duplicates()
-claim_ids = claim_ids.to_list()
-
-claims = []
-sentences = []
-targets = []
-for id in claim_ids:
-  claim = snopes.loc[snopes['<claim_id>']==id]['<claim_text>'].drop_duplicates().to_list()[0]
-  evidence = snopes.loc[snopes['<claim_id>']==id]['<evidence>'].to_list()
-  label  = snopes.loc[snopes['<claim_id>']==id]['<cred_label>'].drop_duplicates().to_list()[0]
-  claims.append(claim)
-  sentences.append(evidence)
-  targets.append(label)
- 
 def build_instance(claim,sentence,target):
   instance = []
   model_input = []
@@ -80,8 +59,33 @@ def build_instance(claim,sentence,target):
     instance.append(torch.tensor([0.]).to(device))
   return instance
 
+#load word embedding
+gloveFile = '/content/drive/My Drive/glove.6B.50d.txt'
+glove,weights,word2index,embedding_dim = load_wordem(gloveFile)
+
+#load dataset
+r_snopes = '/content/drive/My Drive/snopes.tsv'
+snopes = pd.read_csv(r_snopes,sep='\t')
+
+#data pre-processing
+claim_ids = snopes['<claim_id>']
+claim_ids = claim_ids.drop_duplicates()
+claim_ids = claim_ids.to_list()
+
+claims = []
+sentences = []
+targets = []
+for id in claim_ids:
+  claim = snopes.loc[snopes['<claim_id>']==id]['<claim_text>'].drop_duplicates().to_list()[0]
+  evidence = snopes.loc[snopes['<claim_id>']==id]['<evidence>'].to_list()
+  label  = snopes.loc[snopes['<claim_id>']==id]['<cred_label>'].drop_duplicates().to_list()[0]
+  claims.append(claim)
+  sentences.append(evidence)
+  targets.append(label)
+
 instances = []
 instances = [build_instance(claims[i],sentences[i],targets[i]) for i in range(len(claims))]
+
 #constructing train set and test set
 instances_T = [instance for instance in instances if instance[2]==1]
 instances_F = [instance for instance in instances if instance[2]==0]
@@ -92,7 +96,10 @@ divide_f = int(len(instances_F)/10)
 instances_train = instances_T[divide_t:]+instances_F[divide_f:]
 instances_test = instances_T[:divide_t]+instances_F[:divide_f]
 
+#training
 hidden_size = 100
 embedding_size = 50
 han = HAN(embedding_size,hidden_size,1).to(device)
-train_batch(han,instances,n_epoches=100)
+train_batch(han,instances_train,n_epoches=100)
+#test
+p,r,f1 = evaluate(han,instances_test)
