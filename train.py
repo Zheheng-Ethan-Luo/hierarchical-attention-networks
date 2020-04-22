@@ -21,7 +21,7 @@ def train(input,target,han,han_optmz,criterion):
 	
 	han_optmz.step()
 	
-	retun loss.item()
+	return loss.item()
 	
 def trainIters(han, instances, n_epoches, print_every=100, learning_rate=0.005):
 	start = time.time()
@@ -45,5 +45,5 @@ def trainIters(han, instances, n_epoches, print_every=100, learning_rate=0.005):
 
 hidden_size = 100
 embedding_size = 50
-han = HAN(50,100,1).to_device(device)
+han = HAN(embedding_size,hidden_size,1).to(device)
 trainIters(han,instances,20)
